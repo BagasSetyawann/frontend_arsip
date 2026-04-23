@@ -100,7 +100,7 @@ export default function App() {
   // --- FUNGSI AMBIL DATA DARI BACKEND ---
   const fetchArsip = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/arsip");
+      const response = await fetch("https://backend-arsip.vercel.app/api/arsip");
       const data = await response.json();
       const groupedData = {
         suratMasuk: data.filter((item) => item.jenisSurat === "suratMasuk"),
@@ -117,7 +117,7 @@ export default function App() {
 
   const fetchStaf = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/users/staf");
+      const response = await fetch("https://backend-arsip.vercel.app/api/users/staf");
       const data = await response.json();
       setDaftarStaf(data);
     } catch (error) {
@@ -228,7 +228,7 @@ export default function App() {
     formDataToSend.append("filePdf", formData.fileLengkap);
 
     try {
-      const response = await fetch("http://localhost:5000/api/arsip", {
+      const response = await fetch("https://backend-arsip.vercel.app/api/arsip", {
         method: "POST",
         body: formDataToSend,
       });
@@ -262,7 +262,7 @@ export default function App() {
       return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/arsip/${id}`, {
+      const response = await fetch(`https://backend-arsip.vercel.app/api/arsip/${id}`, {
         method: "DELETE", // Method DELETE untuk menghapus
       });
 
@@ -299,7 +299,7 @@ export default function App() {
     }
 
     // Buat URL Dokumen (Ubah localhost sesuai domain jika sudah rilis)
-    const urlDokumen = `http://localhost:5000${selectedArsip.filePath}`;
+    const urlDokumen = `https://backend-arsip.vercel.app${selectedArsip.filePath}`;
 
     // Format Teks WhatsApp
     const teksWA =
@@ -583,7 +583,7 @@ export default function App() {
                                 {/* Tombol Lihat */}
                                 {item.filePath && (
                                   <a
-                                    href={`http://localhost:5000${item.filePath}`}
+                                    href={`https://backend-arsip.vercel.app${item.filePath}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="inline-flex p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors"
