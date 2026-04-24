@@ -17,6 +17,7 @@ import {
 
 // Memanggil komponen dari file terpisah
 import Login from "./pages/Login";
+import { supabase } from "./supabaseClient";
 import ModalForm from "./components/ModalForm";
 
 // =========================================================================
