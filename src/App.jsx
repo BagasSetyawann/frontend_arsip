@@ -100,8 +100,16 @@ export default function App() {
   // --- FUNGSI AMBIL DATA DARI BACKEND ---
   const fetchArsip = async () => {
     try {
-      const response = await fetch("https://backend-arsip.vercel.app/api/arsip");
+      const response = await fetch(
+        "https://backend-arsip.vercel.app/api/arsip",
+      );
       const data = await response.json();
+
+      // Tambahkan pengecekan ini!
+      if (!response.ok || !Array.isArray(data)) {
+        console.error("Gagal mengambil data:", data);
+        return;
+      }
       const groupedData = {
         suratMasuk: data.filter((item) => item.jenisSurat === "suratMasuk"),
         suratKeluar: data.filter((item) => item.jenisSurat === "suratKeluar"),
@@ -117,7 +125,9 @@ export default function App() {
 
   const fetchStaf = async () => {
     try {
-      const response = await fetch("https://backend-arsip.vercel.app/api/users/staf");
+      const response = await fetch(
+        "https://backend-arsip.vercel.app/api/users/staf",
+      );
       const data = await response.json();
       setDaftarStaf(data);
     } catch (error) {
@@ -228,10 +238,13 @@ export default function App() {
     formDataToSend.append("filePdf", formData.fileLengkap);
 
     try {
-      const response = await fetch("https://backend-arsip.vercel.app/api/arsip", {
-        method: "POST",
-        body: formDataToSend,
-      });
+      const response = await fetch(
+        "https://backend-arsip.vercel.app/api/arsip",
+        {
+          method: "POST",
+          body: formDataToSend,
+        },
+      );
 
       if (response.ok) {
         alert("Sukses menyimpan data!");
@@ -262,9 +275,12 @@ export default function App() {
       return;
 
     try {
-      const response = await fetch(`https://backend-arsip.vercel.app/api/arsip/${id}`, {
-        method: "DELETE", // Method DELETE untuk menghapus
-      });
+      const response = await fetch(
+        `https://backend-arsip.vercel.app/api/arsip/${id}`,
+        {
+          method: "DELETE", // Method DELETE untuk menghapus
+        },
+      );
 
       if (response.ok) {
         alert("Arsip berhasil dihapus!");
@@ -299,7 +315,7 @@ export default function App() {
     }
 
     // Buat URL Dokumen (Ubah localhost sesuai domain jika sudah rilis)
-    const urlDokumen = `https://backend-arsip.vercel.app${selectedArsip.filePath}`;
+    const urlDokumen = selectedArsip.filePath;
 
     // Format Teks WhatsApp
     const teksWA =
@@ -583,7 +599,7 @@ export default function App() {
                                 {/* Tombol Lihat */}
                                 {item.filePath && (
                                   <a
-                                    href={`https://backend-arsip.vercel.app${item.filePath}`}
+                                    href={item.filePath}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="inline-flex p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors"
