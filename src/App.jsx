@@ -186,7 +186,6 @@ export default function App() {
         alert("Mohon unggah file dalam format PDF.");
         return;
       }
-      // Tambahkan fileLengkap untuk menyimpan file fisik
       setFormData((prev) => ({
         ...prev,
         fileUrl: URL.createObjectURL(file),
@@ -199,9 +198,6 @@ export default function App() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // ==========================================
-    // VALIDASI MANUAL: Pastikan semua wajib diisi
-    // ==========================================
     if (
       !formData.nomorSurat ||
       !formData.nomorBerkas ||
@@ -209,46 +205,67 @@ export default function App() {
       !formData.tanggalSurat ||
       !formData.perihalSurat
     ) {
-      alert("Gagal: Mohon lengkapi semua isian formulir (kecuali keterangan).");
-      return; // Hentikan proses jika ada yang kosong
+      alert("Mohon lengkapi semua isian formulir.");
+      return;
     }
 
     if (formType === "suratKeluar" && !formData.kodeSurat) {
-      alert("Gagal: Kode Surat wajib diisi untuk Surat Keluar!");
+      alert("Kode Surat wajib diisi untuk Surat Keluar!");
       return;
     }
 
     if (!formData.fileLengkap) {
-      alert("Gagal: Mohon unggah file PDF arsip!");
+      alert("Mohon unggah file PDF arsip!");
       return;
     }
-    // ==========================================
-
-    const formDataToSend = new FormData();
-    formDataToSend.append("jenisSurat", formType);
-    formDataToSend.append("nomorSurat", formData.nomorSurat);
-    formDataToSend.append("nomorBerkas", formData.nomorBerkas);
-    formDataToSend.append("kodeSurat", formData.kodeSurat);
-    formDataToSend.append("penerima", formData.penerima);
-    formDataToSend.append("tanggalSurat", formData.tanggalSurat);
-    formDataToSend.append("perihalSurat", formData.perihalSurat);
-    formDataToSend.append("keterangan", formData.keterangan);
-
-    // File sudah pasti ada karena lolos validasi di atas
-    formDataToSend.append("filePdf", formData.fileLengkap);
 
     try {
+      // ✅ STEP 1: Upload langsung ke Supabase Storage dari frontend
+      const uniqueFileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}.pdf`;
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("arsip-dokumen")
+        .upload(uniqueFileName, formData.fileLengkap, {
+          contentType: "application/pdf",
+          upsert: false,
+        });
+
+      if (uploadError) {
+        alert("Gagal mengupload file: " + uploadError.message);
+        return;
+      }
+
+      // ✅ STEP 2: Ambil URL publik
+      const { data: urlData } = supabase.storage
+        .from("arsip-dokumen")
+        .getPublicUrl(uniqueFileName);
+
+      const publicUrl = urlData.publicUrl;
+
+      // ✅ STEP 3: Kirim data teks + URL ke backend (tanpa file, jadi ringan!)
       const response = await fetch(
         "https://backend-arsip.vercel.app/api/arsip",
         {
           method: "POST",
-          body: formDataToSend,
+          headers: { "Content-Type": "application/json" }, // ← JSON, bukan FormData
+          body: JSON.stringify({
+            jenisSurat: formType,
+            nomorSurat: formData.nomorSurat,
+            nomorBerkas: formData.nomorBerkas,
+            kodeSurat: formData.kodeSurat,
+            penerima: formData.penerima,
+            tanggalSurat: formData.tanggalSurat,
+            perihalSurat: formData.perihalSurat,
+            keterangan: formData.keterangan,
+            fileName: formData.fileLengkap.name,
+            filePath: publicUrl, // ← hanya kirim URL
+          }),
         },
       );
 
       if (response.ok) {
         alert("Sukses menyimpan data!");
-        await fetchArsip(); // Update tabel dengan data terbaru
+        await fetchArsip();
         closeModal();
       } else {
         alert("Gagal menyimpan arsip.");
@@ -258,6 +275,7 @@ export default function App() {
       alert("Terjadi kesalahan koneksi ke server.");
     }
   };
+
   const openModal = (type) => {
     setFormType(type);
     setFormData(initialForm);
